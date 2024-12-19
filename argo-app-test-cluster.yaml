@@ -1,0 +1,28 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: helm-codecommit
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+
+  source:
+    # chart: random-shapes-chart
+    repoURL: https://git-codecommit.us-east-1.amazonaws.com/v1/repos/manifest-repo
+    # targetRevision: 1.0.0
+    targetRevision: HEAD
+    path: ./helm-chart-dev
+   
+  destination:
+    name: test
+    # server: https://172.18.0.5:30658
+    namespace: random-shapes
+
+  syncPolicy:
+    syncOptions:
+      - CreateNamespace=true  
+    automated:
+      prune: true
+      selfHeal: true

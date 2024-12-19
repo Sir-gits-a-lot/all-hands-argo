@@ -1,0 +1,42 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: guestbook
+  namespace: argocd
+spec:
+  generators:
+  - matrix:
+      generators:
+      - git:
+          repoURL: https://github.com/argoproj/argo-cd.git
+          revision: HEAD
+          directories:
+          - path: applicationset/examples/matrix/cluster-addons/*
+      - list:
+          elements:
+          - cluster: engineering-dev
+            url: https://kubernetes.default.svc
+            values:
+              project: default
+          - cluster: engineering-prod
+            url: https://172.18.0.6:32569
+            values:
+              project: default
+  template:
+    metadata:
+      name: '{{path.basename}}-{{cluster}}'
+    spec:
+      project: '{{values.project}}'
+      source:
+        repoURL: https://github.com/argoproj/argo-cd.git
+        targetRevision: HEAD
+        path: '{{path}}'
+      destination:
+        server: '{{url}}'
+        namespace: '{{path.basename}}'
+      syncPolicy:
+        syncOptions:
+          - CreateNamespace=true  
+        automated:
+          prune: true
+          selfHeal: true
